@@ -9,7 +9,7 @@
 - **Lớp:** K4-L3A
 - **Repository URL:** https://github.com/BenKei-19/K4-L3-DAY13-PhamMinhHieu-2A202602919-Monitoring-LLMOps
 - **Commit SHA cuối:**
-- **Challenge ID:**
+- **Challenge ID:** `day13-k4-l3a-monitoring-llmops-v1`
 - **Tên project Langfuse cá nhân:** `day13-k4-l3a-02919`
 
 ## 2. Evidence index
@@ -27,11 +27,11 @@
 | Trace waterfall | [`evidence/07-trace-waterfall.png`](evidence/07-trace-waterfall.png), [`evidence/07-08-trace-detail.txt`](evidence/07-08-trace-detail.txt) |
 | Trace metadata | [`evidence/08-trace-metadata.png`](evidence/08-trace-metadata.png), [`evidence/07-08-trace-detail.txt`](evidence/07-08-trace-detail.txt) |
 | Prompt versions | [`evidence/09-prompt-versions.png`](evidence/09-prompt-versions.png), [`evidence/10-prompt-rollback.txt`](evidence/10-prompt-rollback.txt) |
-| Prompt rollback | [`evidence/10-prompt-rollback.png`](evidence/10-prompt-rollback.png), [`evidence/10-prompt-rollback.txt`](evidence/10-prompt-rollback.txt) |
+| Prompt rollback | [`evidence/10-prompt-rollback.png`](evidence/10-prompt-rollback.png) (production → v2), [`evidence/10-prompt-rollback_2.png`](evidence/10-prompt-rollback_2.png) (sau rollback → v1), [`evidence/10-prompt-rollback.txt`](evidence/10-prompt-rollback.txt) |
 | Dashboard runtime | [`evidence/11-dashboard-overview.png`](evidence/11-dashboard-overview.png) |
-| Incident metric | `evidence/12-incident-metric.png` |
-| Incident log | `evidence/13-incident-log.png` |
-| Incident trace | `evidence/14-incident-trace.png` |
+| Incident metric | [`evidence/12-incident-metric.png`](evidence/12-incident-metric.png), [`evidence/12b-incident-recovery.png`](evidence/12b-incident-recovery.png), [`evidence/12-incident-metric.txt`](evidence/12-incident-metric.txt) |
+| Incident log | [`evidence/13-incident-log.txt`](evidence/13-incident-log.txt) |
+| Incident trace | [`evidence/14-incident-trace.png`](evidence/14-incident-trace.png), [`evidence/14-incident-trace.txt`](evidence/14-incident-trace.txt) |
 
 ## 3. Kết quả kỹ thuật
 
@@ -76,11 +76,11 @@
 
 ## 7. Điều tra challenge
 
-- **Challenge ID:**
-- **Khoảng thời gian điều tra:**
-- **Triệu chứng từ metrics:**
-- **Log line và correlation ID liên quan:**
-- **Trace ID và span gây ảnh hưởng:**
+- **Challenge ID:** `day13-k4-l3a-monitoring-llmops-v1` (cohort K4, seed 1311, affected feature `monitoring`, `latency_threshold_ms` 2000)
+- **Khoảng thời gian điều tra:** 2026-09-29 16:28:00–16:28:13 giờ VN (09:28:00–09:28:13 UTC); kiểm chứng sau khi tắt incident lúc 16:29:44
+- **Triệu chứng từ metrics:** latency P50/P95/P99 = 2652/2654/2654 ms (bình thường 151/151/151 ms), TTFT P95 giữ nguyên 50 ms, error rate 0%, retrieval success 100% — [`12-incident-metric.txt`](evidence/12-incident-metric.txt)
+- **Log line và correlation ID liên quan:** 5/5 `response_sent` của feature `monitoring` có `latency_ms` > 2000; ví dụ `req-edab947a` (session `k4-l3a-challenge-s02`, `latency_ms` 2654, `ttft_ms` 50, `tool_success` true) — [`13-incident-log.txt`](evidence/13-incident-log.txt)
+- **Trace ID và span gây ảnh hưởng:** trace `d2b0bcc5c3eac19556554f27a4139bd5` (cùng `correlation_id` `req-edab947a`): `lab-agent-run` 2.655 s, trong đó span `retrieval` 2.501 s và `llm-generate` 0.151 s; trace bình thường có `retrieval` ≈ 0 s — [`14-incident-trace.txt`](evidence/14-incident-trace.txt)
 - **Root cause:**
 - **Fix action:**
 - **Preventive measure:**

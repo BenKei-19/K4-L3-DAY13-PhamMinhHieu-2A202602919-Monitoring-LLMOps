@@ -1,0 +1,45 @@
+# 12 — Incident metric. Challenge day13-k4-l3a-monitoring-llmops-v1 (cohort K4, incident trong file, seed 1311, affected_feature monitoring, latency_threshold_ms 2000)
+# Ảnh: 12-incident-metric.png (dashboard lúc 16:28:30, đang có sự cố), 12b-incident-recovery.png (16:29:48, sau khi tắt)
+
+## Khoảng thời gian sự cố: 16:28:00–16:28:13 giờ VN (09:28:00–09:28:13 UTC)
+
+## Metric (tính từ data/logs.jsonl, event response_sent)
+- Bình thường (load test 14:21):        n=10 latency P50/P95/P99 = 151/151/151 ms, TTFT P95 = 50 ms, error rate = 0%, retrieval success = 100%
+- Sự cố (challenge 16:28):               n=5 latency P50/P95/P99 = 2652/2654/2654 ms, TTFT P95 = 50 ms, error rate = 0%, retrieval success = 100%
+- Sau khi tắt incident (cùng query 16:29): n=5 latency P50/P95/P99 = 151/152/152 ms, TTFT P95 = 50 ms, error rate = 0%, retrieval success = 100%
+
+## Đối chiếu ngưỡng
+- P95 2654 ms > latency_threshold_ms 2000 của challenge và > ngưỡng alert HighLatencyP95 (2000 ms); vẫn < SLO/dashboard 3000 ms.
+- TTFT P95 không đổi (50 ms) trong khi latency tăng khoảng 17 lần → phần chậm nằm ngoài giai đoạn sinh token của LLM.
+- Error rate 0%, retrieval success 100% → request chậm nhưng không lỗi.
+- Alert HighLatencyP95 yêu cầu thêm count(request_received) >= 10 trong 5 phút; challenge chỉ có 5 request nên điều kiện này KHÔNG thỏa → alert sẽ không kích hoạt với lưu lượng này.
+- Phía client (load_test.py, concurrency 5) đo được khoảng 13.3 s/request, gấp khoảng 5 lần latency_ms phía server: các request được xử lý nối tiếp (request_received cách nhau khoảng 2.65 s trong 13-incident-log.txt).
+
+## Output chạy challenge
+# bắt đầu: 2026-09-29 16:27:59 (giờ VN)
+$ python scripts/inject_incident.py
+200 {'ok': True, 'incidents': {'rag_slow': True, 'tool_fail': False, 'cost_spike': False}}
+
+$ python scripts/load_test.py --challenge --concurrency 5
+Challenge: day13-k4-l3a-monitoring-llmops-v1 | Cohort: K4
+[200] req-a3f78107 | monitoring | 13284.6ms
+[200] req-4b1f3ea6 | monitoring | 13285.4ms
+[200] req-edab947a | monitoring | 13284.2ms
+[200] req-3b7b1c3e | monitoring | 13287.5ms
+[200] req-4715fa0d | monitoring | 13286.8ms
+# kết thúc: 2026-09-29 16:28:13 (giờ VN)
+
+$ curl http://127.0.0.1:8000/metrics
+{"traffic":7,"latency_p50":2652.0,"latency_p95":2654.0,"latency_p99":2654.0,"ttft_p95":50.0,"avg_cost_usd":0.0016,"total_cost_usd":0.0113,"tokens_in_total":242,"tokens_out_total":702,"error_breakdown":{},"quality_avg":0.8571}
+
+# Mitigation + kiểm chứng: 2026-09-29 16:29:44 (giờ VN)
+$ python scripts/inject_incident.py --disable
+200 {'ok': True, 'incidents': {'rag_slow': False, 'tool_fail': False, 'cost_spike': False}}
+
+$ python scripts/load_test.py --challenge --concurrency 5   # cùng 5 query, incident đã tắt
+Challenge: day13-k4-l3a-monitoring-llmops-v1 | Cohort: K4
+[200] req-394b01be | monitoring | 466.7ms
+[200] req-64bd6ed5 | monitoring | 465.6ms
+[200] req-9aa37e5b | monitoring | 466.3ms
+[200] req-6b5d884e | monitoring | 773.7ms
+[200] req-09ed998b | monitoring | 773.4ms
