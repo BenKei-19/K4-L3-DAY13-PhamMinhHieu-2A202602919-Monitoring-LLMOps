@@ -8,7 +8,7 @@
 - **MSSV:** 2A202602919
 - **Lớp:** K4-L3A
 - **Repository URL:** https://github.com/BenKei-19/K4-L3-DAY13-PhamMinhHieu-2A202602919-Monitoring-LLMOps
-- **Commit SHA cuối:**
+- **Commit SHA cuối:** `7301a764ca7e8b686823a42e3da008a34fc201fa` (commit chứa toàn bộ source, config và evidence; commit ngay sau chỉ thêm dòng SHA này)
 - **Challenge ID:** `day13-k4-l3a-monitoring-llmops-v1`
 - **Tên project Langfuse cá nhân:** `day13-k4-l3a-02919`
 
