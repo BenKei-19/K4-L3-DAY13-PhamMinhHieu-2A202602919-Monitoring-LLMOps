@@ -1,0 +1,59 @@
+# 04 — Structured log (nguồn: data/logs.jsonl, do app ghi qua structlog)
+# Một request đầy đủ: request_received + response_sent cùng correlation_id req-70adcd05
+# (request từ `python scripts/load_test.py --concurrency 5`, 2026-09-29 14:21 giờ VN).
+# Trace tương ứng trên Langfuse: 8ab028e66ebc0d9d10cd7e1365c9355f
+
+{
+  "service": "api",
+  "payload": {
+    "message_preview": "What is your refund policy? My email is [REDACTED_EMAIL]"
+  },
+  "event": "request_received",
+  "env": "dev",
+  "session_id": "s01",
+  "correlation_id": "req-70adcd05",
+  "model": "claude-sonnet-4-5",
+  "user_id_hash": "2055254ee30a",
+  "feature": "qa",
+  "level": "info",
+  "ts": "2026-09-29T07:21:14.943758Z"
+}
+{
+  "service": "api",
+  "latency_ms": 151,
+  "ttft_ms": 50,
+  "tokens_in": 36,
+  "tokens_out": 116,
+  "cost_usd": 0.001848,
+  "quality_score": 0.9,
+  "tool_name": "retrieval",
+  "tool_success": true,
+  "payload": {
+    "answer_preview": "Starter answer. You should improve this output logic and add better quality chec..."
+  },
+  "event": "response_sent",
+  "env": "dev",
+  "session_id": "s01",
+  "correlation_id": "req-70adcd05",
+  "model": "claude-sonnet-4-5",
+  "user_id_hash": "2055254ee30a",
+  "feature": "qa",
+  "level": "info",
+  "ts": "2026-09-29T07:21:15.096673Z"
+}
+
+# Correlation ID được trả lại qua response header; x-request-id hợp lệ từ client được giữ nguyên:
+$ curl -i -X POST http://127.0.0.1:8000/chat -H "x-request-id: req-0a1b2c3d" -d '{...}'
+HTTP/1.1 200 OK
+date: Tue, 29 Sep 2026 07:36:27 GMT
+server: uvicorn
+content-length: 281
+content-type: application/json
+x-request-id: req-0a1b2c3d
+x-response-time-ms: 1889.7
+
+{"answer":"Starter answer. You should improve this output logic and add better quality checks. Use retrieved context and keep responses concise.","correlation_id":"req-0a1b2c3d","latency_ms":1524,"ttft_ms":50,"tokens_in":28,"tokens_out":108,"cost_usd":0.001704,"quality_score":0.9}
+
+# Log của request đó mang cùng ID:
+{"service": "api", "payload": {"message_preview": "How should alerts be designed?"}, "event": "request_received", "correlation_id": "req-0a1b2c3d", "session_id": "s11", "feature": "qa", "user_id_hash": "92ec86fa8892", "env": "dev", "model": "claude-sonnet-4-5", "level": "info", "ts": "2026-09-29T07:36:28.185228Z"}
+{"service": "api", "latency_ms": 1524, "ttft_ms": 50, "tokens_in": 28, "tokens_out": 108, "cost_usd": 0.001704, "quality_score": 0.9, "tool_name": "retrieval", "tool_success": true, "payload": {"answer_preview": "Starter answer. You should improve this output logic and add better quality chec..."}, "event": "response_sent", "correlation_id": "req-0a1b2c3d", "session_id": "s11", "feature": "qa", "user_id_hash": "92ec86fa8892", "env": "dev", "model": "claude-sonnet-4-5", "level": "info", "ts": "2026-09-29T07:36:30.073208Z"}

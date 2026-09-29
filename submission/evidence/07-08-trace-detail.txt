@@ -1,0 +1,18 @@
+# 07/08 — Cây observation và metadata của trace 8ab028e66ebc0d9d10cd7e1365c9355f
+# (request req-70adcd05 trong 04-structured-log.txt). Ảnh đi kèm: 07-trace-waterfall.png, 08-trace-metadata.png
+# Đã bỏ các thuộc tính SDK/OpenTelemetry (scope.*, resourceAttributes.*) vì chứa public key.
+
+trace 8ab028e66ebc0d9d10cd7e1365c9355f
+https://cloud.langfuse.com/project/cmuma49dq1wo5ad0c8pus7bew/traces/8ab028e66ebc0d9d10cd7e1365c9355f
+- AGENT lab-agent-run latency=0.152s
+    metadata={"correlation_id": "req-70adcd05", "model": "claude-sonnet-4-5", "feature": "qa", "prompt_fetch_error": "", "prompt_source": "langfuse", "prompt_version": 1, "prompt_label": "production", "prompt_name": "day13-chat", "query_preview": "What is your refund policy? My email is [REDACTED_EMAIL]", "doc_count": 1}
+  - RETRIEVER retrieval latency=0.0s
+      input={"query_preview": "What is your refund policy? My email is [REDACTED_EMAIL]"}
+      output={"doc_count": 1, "doc_previews": ["Refunds are available within 7 days with proof of purchase."]}
+      metadata={"correlation_id": "req-70adcd05", "model": "claude-sonnet-4-5", "feature": "qa"}
+  - GENERATION llm-generate latency=0.151s
+      model=claude-sonnet-4-5 usage={'input': 36, 'output': 116, 'total': 152} cost_usd={'input': 0.000108, 'output': 0.00174, 'total': 0.001848}
+      prompt=day13-chat v1
+      input={"message_preview": "What is your refund policy? My email is [REDACTED_EMAIL]", "doc_count": 1, "prompt_chars": 146}
+      output={"answer_preview": "Starter answer. You should improve this output logic and add better quality chec..."}
+      metadata={"correlation_id": "req-70adcd05", "model": "claude-sonnet-4-5", "feature": "qa"}

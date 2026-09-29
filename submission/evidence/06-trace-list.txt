@@ -1,0 +1,25 @@
+# 06 — Danh sách trace trong project Langfuse cá nhân day13-k4-l3a-02919 (đọc qua API observations v2, 2026-09-29 14:45 giờ VN)
+# Mỗi trace: root AGENT + RETRIEVER + GENERATION; cid = correlation_id dùng để nối với data/logs.jsonl.
+# Ảnh chụp giao diện Langfuse đi kèm: 06-trace-list.png
+
+20 traces in the last 60 minutes
+14:18:10 trace=1873eb35d95c96a2bb337b784a6d0773 cid=req-50f0cc74 label=production prompt_version=1 source=langfuse gen_prompt=day13-chat v1 observations=AGENT+GENERATION+RETRIEVER
+14:19:56 trace=8150dc2bbdb8bec7ea49e561b8bbdbf9 cid=req-3fafb449 label=production prompt_version=1 source=langfuse gen_prompt=day13-chat v1 observations=AGENT+GENERATION+RETRIEVER
+14:21:14 trace=8ab028e66ebc0d9d10cd7e1365c9355f cid=req-70adcd05 label=production prompt_version=1 source=langfuse gen_prompt=day13-chat v1 observations=AGENT+GENERATION+RETRIEVER
+14:21:15 trace=6b84b56f5cb97daf025042e9ff8b12bc cid=req-b3782b7b label=production prompt_version=1 source=langfuse gen_prompt=day13-chat v1 observations=AGENT+GENERATION+RETRIEVER
+14:21:15 trace=5ee9c9696d2c0e44795fe91e1b3f6da3 cid=req-6594cd69 label=production prompt_version=1 source=langfuse gen_prompt=day13-chat v1 observations=AGENT+GENERATION+RETRIEVER
+14:21:15 trace=25558246825540e8e88b6b499cf77779 cid=req-23fbd4ec label=production prompt_version=1 source=langfuse gen_prompt=day13-chat v1 observations=AGENT+GENERATION+RETRIEVER
+14:21:15 trace=00348e6cab139440a19059b061e38a13 cid=req-0dbab218 label=production prompt_version=1 source=langfuse gen_prompt=day13-chat v1 observations=AGENT+GENERATION+RETRIEVER
+14:21:15 trace=2d8138726b688f7896dd95b0c7284390 cid=req-41eb6c1f label=production prompt_version=1 source=langfuse gen_prompt=day13-chat v1 observations=AGENT+GENERATION+RETRIEVER
+14:21:15 trace=386b03188f00a5c5c65806c1b6a78d28 cid=req-58f64fd9 label=production prompt_version=1 source=langfuse gen_prompt=day13-chat v1 observations=AGENT+GENERATION+RETRIEVER
+14:21:16 trace=c0ed20ff533b848694780a7831c1c313 cid=req-fa3be737 label=production prompt_version=1 source=langfuse gen_prompt=day13-chat v1 observations=AGENT+GENERATION+RETRIEVER
+14:21:16 trace=502972afb8d911019c1fd28d1f53e97b cid=req-305faa20 label=production prompt_version=1 source=langfuse gen_prompt=day13-chat v1 observations=AGENT+GENERATION+RETRIEVER
+14:21:16 trace=0c90270bdf04f8f8a2928cba8c80913e cid=req-e81338ae label=production prompt_version=1 source=langfuse gen_prompt=day13-chat v1 observations=AGENT+GENERATION+RETRIEVER
+14:22:47 trace=49dc3c5a7c8a14973e3a4ebc553c45b0 cid=req-597d98e8 label=baseline prompt_version=1 source=langfuse gen_prompt=day13-chat v1 observations=AGENT+GENERATION+RETRIEVER
+14:22:51 trace=53bc13f38de49c66b05d55558c569ce5 cid=req-7f7edb22 label=candidate prompt_version=local-v1 source=local-fallback gen_prompt= vNone observations=AGENT+GENERATION+RETRIEVER
+14:24:57 trace=165c425fdd1554f79665eda1eff9ba30 cid=req-59f4a9c8 label=candidate prompt_version=2 source=langfuse gen_prompt=day13-chat v2 observations=AGENT+GENERATION+RETRIEVER
+14:28:58 trace=232c0d540a4546d4af72df8f19d1309a cid=req-090a7ede label=production prompt_version=1 source=langfuse gen_prompt=day13-chat v1 observations=AGENT+GENERATION+RETRIEVER
+14:36:28 trace=600870e9b80b194a061bf88f3ec5af53 cid=req-0a1b2c3d label=production prompt_version=1 source=langfuse gen_prompt=day13-chat v1 observations=AGENT+GENERATION+RETRIEVER
+14:36:30 trace=bc86cb0f50f0b8d23305722f5dd28d61 cid=req-89e3d433 label=production prompt_version=1 source=langfuse gen_prompt=day13-chat v1 observations=AGENT+GENERATION+RETRIEVER
+14:43:47 trace=453d47b75d8b9de9edbed501bb08275f cid=req-0d66c3e9 label=production prompt_version=2 source=langfuse gen_prompt=day13-chat v2 observations=AGENT+GENERATION+RETRIEVER
+14:44:09 trace=6aab0000455126b0acd2b24361be563a cid=req-b5bd9692 label=production prompt_version=1 source=langfuse gen_prompt=day13-chat v1 observations=AGENT+GENERATION+RETRIEVER

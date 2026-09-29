@@ -1,0 +1,32 @@
+# 05 — PII redaction
+# Input test chứa PII GIẢ do repo cung cấp (data/sample_queries.jsonl) và 1 request thử CCCD/hộ chiếu giả.
+# Scrubber (app/pii.py) chạy trong processor scrub_event, trước JsonlFileProcessor/JSONRenderer (app/logging_config.py).
+
+## Input test (PII giả):
+  [u01] What is your refund policy? My email is student@vinuni.edu.vn
+  [u05] Here is my phone 0987654321, what should be logged?
+  [u09] What is the policy for PII and credit card 4111 1111 1111 1111?
+  [u12] My CCCD is 012345678901 and passport C1234567, what is the refund policy?
+
+## Output thực tế trong data/logs.jsonl (event request_received):
+{"ts": "2026-09-29T07:04:54.698505Z", "correlation_id": "req-53cf1e57", "session_id": "s01", "payload": {"message_preview": "What is your refund policy? My email is [REDACTED_EMAIL]"}}
+{"ts": "2026-09-29T07:05:02.120005Z", "correlation_id": "req-8129a038", "session_id": "s05", "payload": {"message_preview": "Here is my phone [REDACTED_PHONE_VN], what should be logged?"}}
+{"ts": "2026-09-29T07:05:05.837223Z", "correlation_id": "req-28c617b5", "session_id": "s09", "payload": {"message_preview": "What is the policy for PII and credit card [REDACTED_CREDIT_CARD]?"}}
+{"ts": "2026-09-29T07:36:30.131849Z", "correlation_id": "req-89e3d433", "session_id": "s12", "payload": {"message_preview": "My CCCD is [REDACTED_CCCD] and passport [REDACTED_PASSPORT_VN], what is the refu..."}}
+
+## Kiểm chứng độc lập bằng validator (quét toàn bộ data/logs.jsonl bằng regex riêng):
+$ python scripts/validate_logs.py
+--- Lab Verification Results ---
+Total log records analyzed: 59
+Records with missing required fields: 0
+Records with missing enrichment (context): 0
+Unique correlation IDs found: 29
+Potential PII leaks detected: 0
+
+--- Grading Scorecard (Estimates) ---
++ [PASSED] Basic JSON schema
++ [PASSED] Correlation ID propagation
++ [PASSED] Log enrichment
++ [PASSED] PII scrubbing
+
+Estimated Score: 100/100

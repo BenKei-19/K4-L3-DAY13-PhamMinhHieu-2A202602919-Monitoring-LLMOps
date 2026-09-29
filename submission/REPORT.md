@@ -4,13 +4,13 @@
 
 ## 1. Thông tin học viên
 
-- **Họ và tên:**
-- **MSSV:**
+- **Họ và tên:** Pham Minh Hieu
+- **MSSV:** 2A202602919
 - **Lớp:** K4-L3A
-- **Repository URL:**
+- **Repository URL:** https://github.com/BenKei-19/K4-L3-DAY13-PhamMinhHieu-2A202602919-Monitoring-LLMOps
 - **Commit SHA cuối:**
 - **Challenge ID:**
-- **Tên project Langfuse cá nhân:** `day13-k4-l3a-<MSSV>`
+- **Tên project Langfuse cá nhân:** `day13-k4-l3a-02919`
 
 ## 2. Evidence index
 
@@ -18,17 +18,17 @@
 
 | Evidence | Đường dẫn |
 |---|---|
-| Pytest cuối | `evidence/01-pytest.png` |
-| Log validator | `evidence/02-log-validator.png` |
-| Dashboard validator | `evidence/03-dashboard-validator.png` |
-| Structured log | `evidence/04-structured-log.png` |
-| PII redaction | `evidence/05-pii-redaction.png` |
-| Trace list | `evidence/06-trace-list.png` |
-| Trace waterfall | `evidence/07-trace-waterfall.png` |
-| Trace metadata | `evidence/08-trace-metadata.png` |
-| Prompt versions | `evidence/09-prompt-versions.png` |
-| Prompt rollback | `evidence/10-prompt-rollback.png` |
-| Dashboard runtime | `evidence/11-dashboard-overview.png` |
+| Pytest cuối | [`evidence/01-pytest.txt`](evidence/01-pytest.txt) |
+| Log validator | [`evidence/02-log-validator.txt`](evidence/02-log-validator.txt) |
+| Dashboard validator | [`evidence/03-dashboard-validator.txt`](evidence/03-dashboard-validator.txt) |
+| Structured log | [`evidence/04-structured-log.txt`](evidence/04-structured-log.txt) |
+| PII redaction | [`evidence/05-pii-redaction.txt`](evidence/05-pii-redaction.txt) |
+| Trace list | [`evidence/06-trace-list.png`](evidence/06-trace-list.png), [`evidence/06-trace-list.txt`](evidence/06-trace-list.txt) |
+| Trace waterfall | [`evidence/07-trace-waterfall.png`](evidence/07-trace-waterfall.png), [`evidence/07-08-trace-detail.txt`](evidence/07-08-trace-detail.txt) |
+| Trace metadata | [`evidence/08-trace-metadata.png`](evidence/08-trace-metadata.png), [`evidence/07-08-trace-detail.txt`](evidence/07-08-trace-detail.txt) |
+| Prompt versions | [`evidence/09-prompt-versions.png`](evidence/09-prompt-versions.png), [`evidence/10-prompt-rollback.txt`](evidence/10-prompt-rollback.txt) |
+| Prompt rollback | [`evidence/10-prompt-rollback.png`](evidence/10-prompt-rollback.png), [`evidence/10-prompt-rollback.txt`](evidence/10-prompt-rollback.txt) |
+| Dashboard runtime | [`evidence/11-dashboard-overview.png`](evidence/11-dashboard-overview.png) |
 | Incident metric | `evidence/12-incident-metric.png` |
 | Incident log | `evidence/13-incident-log.png` |
 | Incident trace | `evidence/14-incident-trace.png` |
@@ -37,13 +37,13 @@
 
 | Nội dung | Baseline | Kết quả cuối | Nhận xét |
 |---|---|---|---|
-| `validate_logs.py` | | | |
-| `validate_dashboard.py` | | | |
-| `pytest` | | | |
-| Số traces hợp lệ | | | |
-| Số PII leak | | | |
-| Latency P95 / TTFT P95 | | | |
-| Retrieval success rate | | | |
+| `validate_logs.py` | 30/100 | 100/100 | Baseline: 60 bản ghi `api` thiếu `correlation_id` và enrichment, 0 correlation ID |
+| `validate_dashboard.py` | 6/6 | 6/6 | Contract có sẵn; dashboard runtime: `scripts/dashboard.py` |
+| `pytest` | 22 passed | 43 passed | Thêm test PII, correlation ID, child observations, dashboard, alert/SLO |
+| Số traces hợp lệ | 0 (30 trace chỉ có root, `correlation_id=MISSING`) | 20 trace có root/retrieval/generation (14:18–14:44) | Xem `06-trace-list.txt` |
+| Số PII leak | 0 | 0 | Validator quét toàn bộ `data/logs.jsonl` |
+| Latency P95 / TTFT P95 | 1138 ms / 50 ms | 151 ms / 50 ms (load test 14:21, server đã warm); 7419 ms / 50 ms trên toàn cửa sổ 60 phút | Các request chậm (3–10 s) trùng lúc kết nối tới Langfuse Cloud chậm khi lấy prompt |
+| Retrieval success rate | 100% | 100% | Không bật incident |
 
 ## 4. Logging và PII
 
@@ -57,11 +57,15 @@
 - **Cách xác nhận traces do chính tôi tạo trong project cá nhân:**
 - **Cấu trúc root/retrieval/generation observations:**
 - **Cách nối trace với log:**
-- **Prompt name:**
-- **Version/label baseline:**
-- **Version/label candidate:**
+- **Prompt name:** `day13-chat`
+- **Version/label baseline:** v1, labels `baseline` và `production`
+- **Version/label candidate:** v2, label `candidate`
 - **Trace ID của mỗi version:**
-- **Cách promote và rollback `production`:**
+  - Label `baseline` → v1: `49dc3c5a7c8a14973e3a4ebc553c45b0` (`req-597d98e8`)
+  - Label `candidate` → v2: `165c425fdd1554f79665eda1eff9ba30` (`req-59f4a9c8`)
+  - `production` sau khi promote → v2: `453d47b75d8b9de9edbed501bb08275f` (`req-0d66c3e9`)
+  - `production` sau khi rollback → v1: `6aab0000455126b0acd2b24361be563a` (`req-b5bd9692`)
+- **Cách promote và rollback `production`:** `python scripts/prompt_versions.py promote --version 2` và `python scripts/prompt_versions.py promote --version 1`; output đầy đủ trong [`evidence/10-prompt-rollback.txt`](evidence/10-prompt-rollback.txt).
 
 ## 6. Dashboard, SLO và alerts
 

@@ -1,0 +1,47 @@
+# 09/10 — Prompt versions, so sánh label và promote/rollback production
+# Project Langfuse: day13-k4-l3a-02919 — prompt day13-chat. Ảnh đi kèm: 09-prompt-versions.png, 10-prompt-rollback.png
+
+## So sánh cùng input với label baseline và candidate (14:22–14:25 giờ VN)
+Input: "Explain why metrics traces and logs work together" (feature=qa)
+[prompt-compare-baseline] 14:22:47 trace=49dc3c5a7c8a14973e3a4ebc553c45b0 cid=req-597d98e8 label=baseline prompt_version=1 source=langfuse gen_prompt=day13-chat v1 observations=AGENT+GENERATION+RETRIEVER
+    https://cloud.langfuse.com/project/cmuma49dq1wo5ad0c8pus7bew/traces/49dc3c5a7c8a14973e3a4ebc553c45b0
+[prompt-compare-candidate-2] 14:24:57 trace=165c425fdd1554f79665eda1eff9ba30 cid=req-59f4a9c8 label=candidate prompt_version=2 source=langfuse gen_prompt=day13-chat v2 observations=AGENT+GENERATION+RETRIEVER
+    https://cloud.langfuse.com/project/cmuma49dq1wo5ad0c8pus7bew/traces/165c425fdd1554f79665eda1eff9ba30
+(v2 dài hơn một dòng hướng dẫn nên tokens_in tăng từ 32 lên 48 với cùng input.)
+
+# 2026-09-29 14:43:12 (giờ VN) — promote rồi rollback label production của prompt day13-chat
+
+## TRƯỚC: production ở v1
+$ python scripts/prompt_versions.py status
+v1: labels=[baseline, production] | dòng cuối: Question={{message}}
+v2: labels=[candidate, latest] | dòng cuối: Answer in at most 3 short sentences and cite the docs you used.
+
+## PROMOTE production -> v2
+$ python scripts/prompt_versions.py promote --version 2
+Label production giờ trỏ tới day13-chat v2.
+App cache prompt 60 giây: đợi 1 phút hoặc restart API trước khi chạy lại request.
+
+$ python scripts/prompt_versions.py status
+v1: labels=[baseline] | dòng cuối: Question={{message}}
+v2: labels=[candidate, latest, production] | dòng cuối: Answer in at most 3 short sentences and cite the docs you used.
+
+# request với LANGFUSE_PROMPT_LABEL=production (process mới, không dùng cache):
+label=production session=promote-v2-verify correlation_id=req-0d66c3e9 tokens_in=48
+
+## ROLLBACK production -> v1
+$ python scripts/prompt_versions.py promote --version 1
+Label production giờ trỏ tới day13-chat v1.
+App cache prompt 60 giây: đợi 1 phút hoặc restart API trước khi chạy lại request.
+
+$ python scripts/prompt_versions.py status
+v1: labels=[baseline, production] | dòng cuối: Question={{message}}
+v2: labels=[candidate, latest] | dòng cuối: Answer in at most 3 short sentences and cite the docs you used.
+
+# request với LANGFUSE_PROMPT_LABEL=production sau rollback:
+label=production session=rollback-v1-verify correlation_id=req-b5bd9692 tokens_in=32
+
+## Trace trên Langfuse (đọc lại qua API observations v2):
+[promote-v2-verify] 14:43:47 trace=453d47b75d8b9de9edbed501bb08275f cid=req-0d66c3e9 label=production prompt_version=2 source=langfuse gen_prompt=day13-chat v2 observations=AGENT+GENERATION+RETRIEVER
+    https://cloud.langfuse.com/project/cmuma49dq1wo5ad0c8pus7bew/traces/453d47b75d8b9de9edbed501bb08275f
+[rollback-v1-verify] 14:44:09 trace=6aab0000455126b0acd2b24361be563a cid=req-b5bd9692 label=production prompt_version=1 source=langfuse gen_prompt=day13-chat v1 observations=AGENT+GENERATION+RETRIEVER
+    https://cloud.langfuse.com/project/cmuma49dq1wo5ad0c8pus7bew/traces/6aab0000455126b0acd2b24361be563a
