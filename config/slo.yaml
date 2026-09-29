@@ -3,11 +3,37 @@ primary_slo:
   name: fast_successful_requests
   window: 28d
   sli:
+    # Request "tốt" = trả lời thành công VÀ nhanh hơn 3 giây. Request lỗi (request_failed)
+    # không có response_sent nên tự động bị tính là "xấu".
     good_event: 'event == "response_sent" and latency_ms <= 3000'
     total_event: 'event == "request_received"'
   target_percent: 99.5
   error_budget_percent: 0.5
-  note: Học viên phải giải thích hoặc điều chỉnh ngưỡng bằng baseline của mình.
+  baseline:
+    measured_at: 2026-09-29
+    requests: 30
+    latency_p50_ms: 387
+    latency_p95_ms: 1138
+    latency_p99_ms: 1228
+    ttft_p95_ms: 50
+    error_rate_pct: 0
+  rationale: >
+    Giữ ngưỡng 3000 ms theo dashboard contract. Baseline P99 là 1228 ms, nên ngưỡng còn
+    dư khoảng 2.4 lần so với tail latency bình thường, đủ rộng để request đầu tiên sau
+    khi khởi động (cold start khoảng 1.6 s) không bị tính là xấu. Incident rag_slow đo
+    được khoảng 2650 ms/request: người dùng thấy chậm rõ rệt nhưng chưa vi phạm SLO, nên
+    alert HighLatencyP95 đặt ngưỡng 2000 ms để cảnh báo trước khi SLO bị ảnh hưởng.
+    Baseline không có lỗi, nên mục tiêu 99.5% là đạt được. Không chọn 99.9% vì với lượng
+    traffic của lab, chỉ vài request lỗi cũng đủ làm cạn budget.
+  error_budget:
+    formula: 'allowed_bad_requests = total_requests * (100 - target_percent) / 100'
+    per_10000_requests: 50
+    # 28 ngày = 40320 phút; 0.5% tương đương khoảng 201.6 phút hệ thống "xấu" hoàn toàn.
+    time_equivalent_minutes_28d: 201.6
+    policy: >
+      Còn trên 50% budget: được deploy/đổi prompt bình thường. Còn 0–50%: mỗi thay đổi
+      prompt/model phải có kế hoạch rollback đã thử. Hết budget: dừng thay đổi tính năng,
+      chỉ làm việc giúp hệ thống ổn định lại cho tới khi budget hồi lại.
 guardrails:
   error_rate_pct_max: 2
   daily_cost_usd_max: 2.5

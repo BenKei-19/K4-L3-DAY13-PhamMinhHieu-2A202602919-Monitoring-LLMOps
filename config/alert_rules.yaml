@@ -1,25 +1,36 @@
 alerts:
-  - name: TODO_alert_1
-    severity: TODO
-    condition: TODO
-    duration: TODO
+  - name: HighLatencyP95
+    severity: P2-high
+    # Cảnh báo sớm, thấp hơn ngưỡng SLO 3000 ms: baseline P95 = 1138 ms, còn incident
+    # rag_slow đo được khoảng 2650 ms/request (chưa vượt 3000 ms). Tối thiểu 10 request
+    # trong cửa sổ để một request chậm đơn lẻ (cold start) không gây báo động.
+    condition: 'p95(latency_ms where event == "response_sent") > 2000 over 5m and count(event == "request_received") >= 10 over 5m'
+    duration: 5m
     type: symptom-based
     channel: slack
-    owner: TODO
+    slack_channel: "#day13-l3a-alerts"
+    owner: PhamMinhHieu
+    slo: fast_successful_requests
     runbook: docs/alerts.md#alert-1
-  - name: TODO_alert_2
-    severity: TODO
-    condition: TODO
-    duration: TODO
+  - name: HighErrorRate
+    severity: P1-critical
+    condition: 'count(event == "request_failed") / count(event == "request_received") * 100 > 2 over 5m and count(event == "request_received") >= 10 over 5m'
+    duration: 5m
     type: symptom-based
     channel: slack
-    owner: TODO
+    slack_channel: "#day13-l3a-alerts"
+    owner: PhamMinhHieu
+    slo: fast_successful_requests
     runbook: docs/alerts.md#alert-2
-  - name: TODO_alert_3
-    severity: TODO
-    condition: TODO
-    duration: TODO
+  - name: CostPerRequestSpike
+    severity: P3-warning
+    # Baseline khoảng 0.00214 USD/request; 0.005 là hơn 2 lần baseline. Cửa sổ dài hơn
+    # (15m) vì cost tăng không làm người dùng hỏng ngay, nhưng sẽ làm cạn ngân sách ngày.
+    condition: 'avg(cost_usd where event == "response_sent") > 0.005 over 15m'
+    duration: 15m
     type: symptom-based
     channel: slack
-    owner: TODO
+    slack_channel: "#day13-l3a-alerts"
+    owner: PhamMinhHieu
+    slo: guardrails.daily_cost_usd_max
     runbook: docs/alerts.md#alert-3

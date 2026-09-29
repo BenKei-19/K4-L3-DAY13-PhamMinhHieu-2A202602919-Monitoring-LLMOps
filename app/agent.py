@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import time
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 
 from . import metrics
 from .mock_llm import FakeLLM
@@ -51,7 +52,23 @@ class LabAgent:
             },
         ):
             started = time.perf_counter()
-            docs = retrieve(message)
+            # Child observation 1: retrieval. Only a scrubbed preview of the query is sent.
+            with langfuse_client.start_as_current_observation(
+                name="retrieval",
+                as_type="retriever",
+                input={"query_preview": summarize_text(message)},
+            ) as retrieval:
+                try:
+                    docs = retrieve(message)
+                except Exception as exc:
+                    retrieval.update(level="ERROR", status_message=type(exc).__name__)
+                    raise
+                retrieval.update(
+                    output={
+                        "doc_count": len(docs),
+                        "doc_previews": [summarize_text(doc) for doc in docs],
+                    }
+                )
             prompt = resolve_prompt(
                 langfuse_client,
                 feature=feature,
@@ -71,13 +88,41 @@ class LabAgent:
                 },
                 version=prompt.version,
             )
-            # TODO (CP2): instrument retrieve() and FakeLLM.generate() as child
-            # observations. The nested generation must receive prompt, usage and cost.
+            # Child observation 2: the LLM call as a generation. propagate_attributes links
+            # the managed prompt version to it; the raw prompt/answer are never sent, only
+            # scrubbed previews, plus model, token usage and cost.
             with propagate_attributes(prompt=prompt.managed_prompt):
-                response = self.llm.generate(prompt.text)
+                with langfuse_client.start_as_current_observation(
+                    name="llm-generate",
+                    as_type="generation",
+                    model=self.model,
+                    version=prompt.version,
+                    input={
+                        "message_preview": summarize_text(message),
+                        "doc_count": len(docs),
+                        "prompt_chars": len(prompt.text),
+                    },
+                ) as generation:
+                    generation_started = datetime.now(timezone.utc)
+                    response = self.llm.generate(prompt.text)
+                    cost_details = self._cost_details(
+                        response.usage.input_tokens, response.usage.output_tokens
+                    )
+                    generation.update(
+                        output={"answer_preview": summarize_text(response.text)},
+                        usage_details={
+                            "input": response.usage.input_tokens,
+                            "output": response.usage.output_tokens,
+                            "total": response.usage.input_tokens + response.usage.output_tokens,
+                        },
+                        cost_details=cost_details,
+                        # Lets Langfuse show time-to-first-token for this generation.
+                        completion_start_time=generation_started
+                        + timedelta(milliseconds=response.ttft_ms),
+                    )
             quality_score = self._heuristic_quality(message, response.text, docs)
             latency_ms = int((time.perf_counter() - started) * 1000)
-            cost_usd = self._estimate_cost(response.usage.input_tokens, response.usage.output_tokens)
+            cost_usd = cost_details["total"]
 
         metrics.record_request(
             latency_ms=latency_ms,
@@ -98,10 +143,17 @@ class LabAgent:
             quality_score=quality_score,
         )
 
-    def _estimate_cost(self, tokens_in: int, tokens_out: int) -> float:
+    def _cost_details(self, tokens_in: int, tokens_out: int) -> dict[str, float]:
         input_cost = (tokens_in / 1_000_000) * 3
         output_cost = (tokens_out / 1_000_000) * 15
-        return round(input_cost + output_cost, 6)
+        return {
+            "input": round(input_cost, 6),
+            "output": round(output_cost, 6),
+            "total": round(input_cost + output_cost, 6),
+        }
+
+    def _estimate_cost(self, tokens_in: int, tokens_out: int) -> float:
+        return self._cost_details(tokens_in, tokens_out)["total"]
 
     def _heuristic_quality(self, question: str, answer: str, docs: list[str]) -> float:
         score = 0.5
